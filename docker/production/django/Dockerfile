@@ -77,7 +77,8 @@ COPY ./pyproject.toml ./poetry.lock ./
 RUN python --version \
     && pip install poetry==1.2.2 \
     && poetry config virtualenvs.create false \
-    && poetry install --no-dev
+    && poetry install --no-dev \
+    && pip3 install ddtrace
 
 # Create non-privileged user
 RUN addgroup django \
