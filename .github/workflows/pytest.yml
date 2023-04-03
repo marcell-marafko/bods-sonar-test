@@ -6,7 +6,7 @@ on:
 defaults:
    run:
     working-directory: ./
-    
+
 jobs:
   test:
 
@@ -27,6 +27,7 @@ jobs:
         pip install Django
         pip install django-environ
         pip install python-dateutil
+        pip install pytest-cov
 
 
     - name: Run pytest
