@@ -28,6 +28,7 @@ jobs:
         pip install django-environ
         pip install python-dateutil
         pip install pytest-cov
+        pip install django-hosts
 
 
     - name: Run pytest
