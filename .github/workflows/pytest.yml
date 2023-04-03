@@ -34,6 +34,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi      
           pip install Django
           pip install django-environ
+          pip install python-dateutil
           
       - name: Test with pytest
         run: |
