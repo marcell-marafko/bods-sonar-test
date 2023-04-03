@@ -41,4 +41,4 @@ jobs:
           pip install pytest-django
           pip install pytest
           pip install pytest-cov
-          pytest
+          pytest ./
