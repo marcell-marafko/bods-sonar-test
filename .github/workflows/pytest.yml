@@ -29,6 +29,7 @@ jobs:
         pytest
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        DJANGO_PARENT_HOST: ${{ secrets.DJANGO_PARENT_HOST }}
 
 # name: pytest
 
