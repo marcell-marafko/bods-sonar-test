@@ -55,6 +55,7 @@ jobs:
         GOV_NOTIFY_API_KEY : ${{ secrets.GOV_NOTIFY_API_KEY}}
         DQS_URL : https://api3-bods-staging.itoworld.com
         DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY}}
+        REDIS_URL: redis://redis:6379/0
 
 
 
