@@ -32,6 +32,30 @@ jobs:
         DJANGO_PARENT_HOST: ${{ secrets.DJANGO_PARENT_HOST }}
         CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL}}
         DJANGO_SETTINGS_MODULE: ${{ secrets.DJANGO_SETTINGS_MODULE}}
+        CAVL_VALIDATION_URL: "https://api-sirivm-validate-cavl-staging.itoworld.com"
+        CAVL_CONSUMER_URL: "https://api-consumer-cavl-staging.itoworld.com"
+        CAVL_URL : "https://api-consumer-cavl-staging.itoworld.com"
+        GOOGLE_ANALYTICS_KEY : ""
+        AVL_LOWER_THRESHOLD : 0.45
+        ITO_GTFS_AWS_ACCESS_KEY_ID : ${{ secrets.ITO_GTFS_AWS_ACCESS_KEY_ID}}
+        ITO_GTFS_AWS_SECRET_ACCESS_KEY : ${{ secrets.ITO_GTFS_AWS_SECRET_ACCESS_KEY}}
+        ITO_GTFS_AWS_REGION : "eu-west-2"
+        TXC_SCHEMA_ZIP_URL : "http://www.transxchange.org.uk/schema/2.4/TransXChange_schema_2.4.zip"
+        TXC_XSD_PATH : "TransXChange_general.xsd"
+        NETEX_SCHEMA_ZIP_URL : "http://netex.uk/netex/schema/1.09c/NeTEx_Xml-v1.09c_2019.05.17.zip"
+        NETEX_XSD_PATH: "xsd/NeTEx_publication.xsd"
+        PTI_START_DATE: "2021-04-01"
+        PTI_ENFORCED_DATE : "2021-08-02"
+        PTI_PDF_URL : "https://pti.org.uk/system/files/files/TransXChange_UK_PTI_Profile_v1.1.A.pdf"
+        MS_TENANT_ID : ${{ secrets.MS_TENANT_ID}}
+        MS_LOGIN_URL : https://login.microsoftonline.com
+        MS_SCOPE : "https://DVSAUK.onmicrosoft.com/{MS_CLIENT_ID}/.default"
+        OTC_API_URL: "https://volapi.app.olcs.dvsacloud.uk/1.0/psv/busservice"
+        OTC_API_KEY: ""
+
+
+
+
 
 # name: pytest
 
