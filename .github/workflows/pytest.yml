@@ -30,6 +30,8 @@ jobs:
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         DJANGO_PARENT_HOST: ${{ secrets.DJANGO_PARENT_HOST }}
+        CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL}}
+        DJANGO_SETTINGS_MODULE: ${{ secrets.DJANGO_SETTINGS_MODULE}}
 
 # name: pytest
 
