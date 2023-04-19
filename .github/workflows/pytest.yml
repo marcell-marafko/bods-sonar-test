@@ -54,7 +54,7 @@ jobs:
         OTC_API_KEY: ""
         GOV_NOTIFY_API_KEY : ${{ secrets.GOV_NOTIFY_API_KEY}}
         DQS_URL : https://api3-bods-staging.itoworld.com
-        DJANGO_SECRET_KEY: glzjmBqlYoWW4YueX4PpH8L9iloKaAzEorhXSspjwlunC90VPTraRet6SIdGST3s
+        DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY}}
 
 
 
