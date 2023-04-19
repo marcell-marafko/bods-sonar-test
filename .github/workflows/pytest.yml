@@ -52,6 +52,7 @@ jobs:
         MS_SCOPE : "https://DVSAUK.onmicrosoft.com/{MS_CLIENT_ID}/.default"
         OTC_API_URL: "https://volapi.app.olcs.dvsacloud.uk/1.0/psv/busservice"
         OTC_API_KEY: ""
+        GOV_NOTIFY_API_KEY : ${{ secrets.GOV_NOTIFY_API_KEY}}
 
 
 
