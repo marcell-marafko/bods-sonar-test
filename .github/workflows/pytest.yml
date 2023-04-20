@@ -61,6 +61,7 @@ jobs:
         DJANGO_DATA_SUBDOMAIN: "data"
         DJANGO_PUBLISH_SUBDOMAIN: "publish"
         DJANGO_ADMIN_SUBDOMAIN: "www"
+        GENERIC_TEMPLATE_ID : ""
 
 
 
