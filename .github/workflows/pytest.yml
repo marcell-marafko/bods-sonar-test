@@ -60,7 +60,7 @@ jobs:
         DJANGO_AWS_SIRIVM_STORAGE_BUCKET_NAME: "bodds-dev-sirivm"
         DJANGO_DATA_SUBDOMAIN: "data"
         DJANGO_PUBLISH_SUBDOMAIN: "publish"
-        DJANGO_ADMIN_SUBDOMAIN "www"
+        DJANGO_ADMIN_SUBDOMAIN: "www"
 
 
 
