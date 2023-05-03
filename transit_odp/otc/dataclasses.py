@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional, List
+from typing import List, Optional
 
 from django.utils.timezone import make_aware
 from pydantic import Field, validator
@@ -169,6 +169,7 @@ class Service(BaseModel):
     subsidies_details: Optional[str]
     last_modified: Optional[datetime]
     licence: Licence
+    local_authorities: Optional[list]
 
     @validator(
         "subsidies_description",

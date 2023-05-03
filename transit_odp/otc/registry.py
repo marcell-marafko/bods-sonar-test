@@ -151,6 +151,15 @@ class Registry:
         registrations = self._client.get_variations_by_registration_code_desc(
             registration_number
         )
+        latest_variation = []
+        highest_latest_variation = registrations[0].variation_number
+        latest_variation = [
+            x for x in registrations if x.variation_number == highest_latest_variation
+        ]
+        local_auth = self.get_service_lta(latest_variation)
+        for registration in registrations:
+            registration.local_authorities = local_auth
+
         for registration in registrations:
             if (
                 registration.registration_status
@@ -204,6 +213,12 @@ class Registry:
         operator_id = registration.operator_id
 
         service = self._service_map.get((registration_number, service_type_description))
+
+        if service:
+            service.local_authorities.append(registration.local_authorities)
+            registration.local_authorities = list(set(service.local_authorities))
+        else:
+            registration.local_authorities = [registration.local_authorities]
         if service and registration.variation_number < service.variation_number:
             return
 
@@ -222,6 +237,17 @@ class Registry:
         self._service_map[(registration_number, service_type_description)] = Service(
             operator=operator, licence=licence, **registration.dict()
         )
+
+    def get_service_lta(self, variations):
+        unique_local_authorities = []
+        for variation in variations:
+            if variation.local_authorities is not None:
+                unique_local_authorities.append(variation.local_authorities)
+            else:
+                unique_local_authorities.append("")
+
+        unique_local_authorities_list = list(set(unique_local_authorities))
+        return unique_local_authorities_list
 
     @property
     def operators(self) -> List[Operator]:

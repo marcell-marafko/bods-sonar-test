@@ -5,10 +5,9 @@ from typing import Set, Tuple, Union
 from django.db import transaction
 
 from transit_odp.otc.client.enums import RegistrationStatusEnum
-from transit_odp.otc.models import Licence, Operator, Service
-
-from transit_odp.otc.registry import Registry
+from transit_odp.otc.models import Licence, LocalAuthority, Operator, Service
 from transit_odp.otc.populate_lta import PopulateLTA
+from transit_odp.otc.registry import Registry
 
 logger = getLogger(__name__)
 
@@ -74,17 +73,27 @@ class Loader:
     def load_services(self):
         operator_map = {op.operator_id: op for op in Operator.objects.all()}
         licence_map = {lic.number: lic for lic in Licence.objects.all()}
-        services = []
+        num_services = 0
 
         for key in self.get_missing_services():
+            num_services = num_services + 1
             service = self.registry.get_service_by_key(*key)
             operator = operator_map[service.operator.operator_id]
             licence = licence_map[service.licence.number]
+            local_ath = service.local_authorities
+            del service.local_authorities
 
-            services.append(Service.from_registry_service(service, operator, licence))
+            services = Service.from_registry_service(service, operator, licence)
+            lta, created = LocalAuthority.objects.get_or_create(name=local_ath)
+            if created:
+                logger.info("LocalAuthority object created")
+            else:
+                logger.info("LocalAuthority object exists")
+            services.save()
+            lta.registration_numbers.add(services.id)
 
-        logger.info(f"loading {len(services)} new services into database")
-        Service.objects.bulk_create(services)
+        logger.info(f"loading {num_services} new services into database")
+        # Service.objects.bulk_create(services)
 
     def update_services_and_operators(self):
         all_services = Service.objects.select_related("operator", "licence").all()
@@ -113,9 +122,13 @@ class Loader:
                 and db_service.variation_number < updated_service.variation_number
             ):
                 # A change has been detected
+                del updated_service.local_authorities
                 updated_service_kwargs = updated_service.dict()
 
-                for db_item, kwargs, in (
+                for (
+                    db_item,
+                    kwargs,
+                ) in (
                     (db_service.licence, updated_service_kwargs.pop("licence")),
                     (db_service.operator, updated_service_kwargs.pop("operator")),
                     (db_service, updated_service_kwargs),
@@ -182,7 +195,7 @@ class Loader:
             self.load_services()
             self.update_services_and_operators()
             self.delete_bad_data()
-            self.refresh_lta(_registrations)
+            # self.refresh_lta(_registrations)
 
     def refresh_lta(self, regs_to_update_lta):
         refresh_lta = PopulateLTA()
@@ -190,6 +203,9 @@ class Loader:
         logger.info(f"Completed updating the local authorities.")
 
     def _delete_all_otc_data(self) -> None:
+        logger.info("Clearing LocalAuthority table")
+        count, _ = LocalAuthority.objects.all().delete()
+        logger.info(f"Deleted {count} OTC Local Authorities")
         logger.info("Clearing OTC tables")
         count, _ = Service.objects.all().delete()
         logger.info(f"Deleted {count} OTC Services")
@@ -222,19 +238,38 @@ class Loader:
         Operator.objects.bulk_create(new_otc_objects)
 
         new_otc_objects = []
+        num_services = 0
+        num_lta_created = 0
+        num_of_mappings_created = 0
+
         operator_map = {op.operator_id: op for op in Operator.objects.all()}
         licence_map = {lic.number: lic for lic in Licence.objects.all()}
         for service in self.registry.services:
+            num_services = num_services + 1
+            local_authorities = service.local_authorities
+            del service.local_authorities
+
             operator = operator_map[service.operator.operator_id]
             licence = licence_map[service.licence.number]
-            new_otc_objects.append(
-                Service.from_registry_service(service, operator, licence)
-            )
+            service_obj = Service.from_registry_service(service, operator, licence)
+            for local_authority in local_authorities:
+                lta, created = LocalAuthority.objects.get_or_create(
+                    name=local_authority
+                )
+                if created:
+                    num_lta_created = num_lta_created + 1
+                    logger.info("LocalAuthority object created")
+                else:
+                    logger.info("LocalAuthority object exists")
+            service_obj.save()
+            lta.registration_numbers.add(service_obj.id)
+            num_of_mappings_created = num_of_mappings_created + 1
 
+        logger.info(f"loading {num_services} new services into database from API")
+        logger.info(f"loading {num_lta_created} new LTA's into database from API")
         logger.info(
-            f"loading {len(new_otc_objects)} new services into database from API"
+            f"loading {num_of_mappings_created} new service to LTA mapping into database from API"
         )
-        Service.objects.bulk_create(new_otc_objects)
 
     @cached_property
     def registered_service(self):
