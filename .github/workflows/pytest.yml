@@ -21,6 +21,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+          pip install --upgrade pip setuptools wheel
           pip install poetry
           poetry install --no-root
      
