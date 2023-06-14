@@ -27,9 +27,9 @@ jobs:
       run: |
           pip install poetry==1.2.2
           pip install pytest
-          poetry config virtualenvs.create true \
+          poetry config virtualenvs.create false \
      
 
     - name: Test with pytest
       run: |
-          poetry run pytest
+         pytest ./
