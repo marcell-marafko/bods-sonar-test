@@ -48,7 +48,6 @@ jobs:
         echo ${{ steps.set-version-number.outputs.version }} 
 
     - name: Build, tag, and push base image to Amazon ECR
-      if: steps.base-image-changes.outputs.django_base == 'true'
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: ${{ env.ECR_BASE_REPOSITORY_NAME }}  
