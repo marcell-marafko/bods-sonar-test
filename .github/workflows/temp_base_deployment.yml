@@ -1,0 +1,65 @@
+on:
+  push:
+    branches:
+    - 'temp_build_base_image'
+  workflow_dispatch:
+
+name: 'teamp_base_deployment'
+
+defaults:
+  run:
+    working-directory: ./
+
+env:  
+  ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY }}
+  ECR_BASE_REPOSITORY_NAME: ${{ secrets.ECR_BASE_REPOSITORY }}
+  ENVIRONMENT_NAME: dev
+
+jobs:
+
+  teamp_base_deployment:
+    name: 'teamp_base_deployment'
+    runs-on: ubuntu-latest
+    environment:
+      name: dev
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-2
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - id: set-version-number
+      run: |
+        TEXT=$(cat ./version.txt)
+        echo "version=${TEXT//'%'/'%25'}" >> $GITHUB_OUTPUT
+
+    - id: echo-version
+      run: |
+        echo ${{ steps.set-version-number.outputs.version }} 
+
+    - name: Build, tag, and push base image to Amazon ECR
+      if: steps.base-image-changes.outputs.django_base == 'true'
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ env.ECR_BASE_REPOSITORY_NAME }}  
+      run: |
+      
+        echo "base_image=$ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.set-version-number.outputs.version }}" >> $GITHUB_OUTPUT
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.set-version-number.outputs.version }} $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/production/django_base/Dockerfile .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
+
+    - name: Logout of Amazon ECR
+      if: always()
+      run: docker logout ${{ steps.login-ecr.outputs.registry }}   
+
+    
