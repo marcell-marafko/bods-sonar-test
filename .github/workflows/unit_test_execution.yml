@@ -1,4 +1,9 @@
 on:
+  push:
+    branches:
+    - 'IGH-577-unit-test-execution'
+    paths:
+    - '.github/workflows/unit_test_execution.yml'
   workflow_dispatch:
 
 name: 'unit_test_execution'
@@ -7,27 +12,26 @@ defaults:
   run:
     working-directory: ./transit_odp/fares
 
-env:  
-  ECR_REPOSITORY_NAME: ${{ secrets.ECR_REPOSITORY }}
-  ENVIRONMENT_NAME: dev
-
 jobs:
 
   unit_test_execute:
     name: 'unit_test_execution'
     runs-on: ubuntu-latest
-    environment:
-      name: dev
     
     steps:
     - name: Checkout
       uses: actions/checkout@v2
 
-    - run:
-        name: run tests
-        command: |
-          . venv/bin/activate
-          mkdir test-results
-          pytest --junitxml=test-results/junit.xml
-    - store_test_results:
-        path: test-results
+    - name: Set up Python 3.9.16
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.9.16"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+
+    - name: Run pytest
+      run: | 
+        pytest
