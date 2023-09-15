@@ -35,7 +35,7 @@ jobs:
         python -m pip install django
         python -m pip install django_hosts
         python -m pip install pytest_django
-        python -m pip install environ
+        python -m pip install django-environ
 
     - name: Run pytest
       run: |
