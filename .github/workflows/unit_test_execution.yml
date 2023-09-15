@@ -36,7 +36,7 @@ jobs:
         python -m pip install django_hosts
         python -m pip install pytest_django
         python -m pip install django-environ
-        python -m pip install dateutil
+        python -m pip install python-dateutil --upgrade
 
     - name: Run pytest
       run: |
