@@ -36,4 +36,5 @@ jobs:
     - name: Run pytest
       run: |
         pwd
-        pytest
+        poetry install
+        poetry run pytest
