@@ -32,6 +32,7 @@ jobs:
         cd ./../../
         pwd
         python -m pip install pytest
+        python -m pip install django
 
     - name: Run pytest
       run: |
