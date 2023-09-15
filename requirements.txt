@@ -26,7 +26,6 @@ django-invitations ==~=1.9.0
 django-model-utils ==~=4.0.0
 django-redis ==~=4.12.0
 django-rest-swagger ==~=2.2.0
-django-storages =={extras ==[boto3], version ==~=1.8}
 django-tables2 ==~=2.3.0
 djangorestframework ==~=3.11.0
 djangorestframework-gis ==~=0.15
@@ -79,4 +78,3 @@ requests-mock ==~=1.9.3
 safety ==~=1.10.3
 watchdog ==~=0.10.0
 werkzeug ==~=2.0.0
-build-backend ==poetry.core.masonry.api
