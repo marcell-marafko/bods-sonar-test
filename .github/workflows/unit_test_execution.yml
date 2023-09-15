@@ -27,7 +27,7 @@ jobs:
       with:
         python-version: "3.9.16"
 
-    - name: Install dependencies
+    - name: Install dependency
       run: |
         cd ./../../
         pwd
