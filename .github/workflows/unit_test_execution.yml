@@ -31,10 +31,9 @@ jobs:
       run: |
         cd ./../../
         pwd
-        python -m pip install pyproject.toml
+        python -m pip install -r requirements.txt
 
     - name: Run pytest
       run: |
         pwd
-        poetry install
-        poetry run pytest
+        pytest
