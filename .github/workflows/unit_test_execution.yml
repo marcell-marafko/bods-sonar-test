@@ -29,7 +29,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install /home/runner/work/bods/bods/pyproject.toml
+        cd ./
+        pwd
+        python -m pip install pyproject.toml
 
     - name: Run pytest
       run: |
