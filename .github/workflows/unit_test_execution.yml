@@ -33,6 +33,7 @@ jobs:
         pwd
         python -m pip install pytest
         python -m pip install django
+        python -m pip install django_hosts
 
     - name: Run pytest
       run: |
