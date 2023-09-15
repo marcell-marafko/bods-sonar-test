@@ -31,7 +31,7 @@ jobs:
       run: |
         cd ./../../
         pwd
-        python -m pip install -r pyproject.toml
+        python -m pip install pyproject.toml
 
     - name: Run pytest
       run: |
