@@ -47,6 +47,17 @@ jobs:
         python -m pip install django-environ
         python -m pip install python-dateutil --upgrade
 
+    - name: 'Create env file'
+      run: |
+        touch .env
+        echo ENGINE="django.contrib.gis.db.backends.postgis" >> .env
+        echo NAME=transit_odp >> .env
+        echo USER=transit_odp >> .env
+        echo PASSWORD=transit_odp >> .env
+        echo HOST=transit_odp >> .env
+        echo PORT=5432 >> .env
+        cat .env
+
     - name: Run pytest
       run: |
         pwd
