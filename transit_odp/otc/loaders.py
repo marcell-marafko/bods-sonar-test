@@ -1,22 +1,22 @@
+from datetime import date, timedelta
 from functools import cached_property
+from itertools import chain
 from logging import getLogger
 from typing import Set, Tuple, Union
-from datetime import date, timedelta
-from itertools import chain
+
 from django.conf import settings
-from django.db import transaction, connection
+from django.db import connection, transaction
 
 from transit_odp.otc.client.enums import RegistrationStatusEnum
 from transit_odp.otc.models import (
+    InactiveService,
     Licence,
+    LocalAuthority,
     Operator,
     Service,
-    InactiveService,
-    LocalAuthority,
 )
-
-from transit_odp.otc.registry import Registry
 from transit_odp.otc.populate_lta import PopulateLTA
+from transit_odp.otc.registry import Registry
 
 logger = getLogger(__name__)
 
@@ -123,7 +123,10 @@ class Loader:
                 # A change has been detected
                 updated_service_kwargs = updated_service.dict()
 
-                for db_item, kwargs, in (
+                for (
+                    db_item,
+                    kwargs,
+                ) in (
                     (db_service.licence, updated_service_kwargs.pop("licence")),
                     (db_service.operator, updated_service_kwargs.pop("operator")),
                     (db_service, updated_service_kwargs),
@@ -147,7 +150,6 @@ class Loader:
             logger.info(f'Updated {len(entities_to_update[key]["items"])} {key}')
 
     def load_inactive_services(self, variation):
-
         InactiveService.objects.create(
             registration_number=variation.registration_number,
             registration_status=variation.registration_status,
@@ -179,7 +181,7 @@ class Loader:
         """
         days_ago = date.today() - timedelta(
             days=settings.OTC_DAILY_JOB_EFFECTIVE_DATE_TIMEDELTA
-        )
+        )  # test commit
         most_recently_modified = (
             Service.objects.filter(last_modified__isnull=False)
             .order_by("last_modified")
