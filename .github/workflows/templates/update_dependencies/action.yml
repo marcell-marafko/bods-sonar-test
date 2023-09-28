@@ -87,7 +87,7 @@ runs:
         fi
 
     - id: build_node_base
-      if: steps.check_node_dependencies.outputs.changed == 'true' || steps.check_images.outputs.node_image_exists == 'false'
+      if: steps.check_for_node_change.outputs.changed == 'true' || steps.check_images.outputs.node_image_exists == 'false'
       shell: bash
       run: |    
         echo "node_base_image=${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }}" >> $GITHUB_OUTPUT
