@@ -5,6 +5,8 @@ on:
     paths:
     - '.github/workflows/unit_test_execution.yml'
     - '.github/workflows/templates/update_dependencies/action.yml'
+    - 'package.json'
+    - 'pyproject.toml'
   workflow_dispatch:
 
 name: 'unit_test_execution'
