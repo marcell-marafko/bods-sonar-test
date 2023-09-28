@@ -104,7 +104,7 @@ runs:
         fi
         echo $cachefrom
         docker build $cachefrom -t ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }} -f ./docker/production/node_base/Dockerfile .
-
+        docker push ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }} --all-tags
     # - id: build_django_base
     #   if: steps.check_python_dependencies.outputs.changed == 'true'
     #   shell: bash
