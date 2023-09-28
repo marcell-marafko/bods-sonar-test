@@ -27,7 +27,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Check Node Dependencies
+    - name: "Check Node Dependencies"
       id: check_for_node_change
       shell: bash
       run: |
@@ -44,7 +44,7 @@ runs:
         fi
         echo "changed=${changed}" >> $GITHUB_OUTPUT
 
-    - name: Check Python Dependencies
+    - name: "Check Python Dependencies"
       id: check_for_python_change
       shell: bash
       run: |
@@ -61,7 +61,7 @@ runs:
         fi
         echo "changed=${changed}" >> $GITHUB_OUTPUT
 
-    - name: Check if images with required tag exist in Amazon ECR
+    - name: "Check if images with required tag exist in Amazon ECR"
       shell: bash
       id: check_images
       run: |
@@ -86,7 +86,8 @@ runs:
             echo "django_image_latest_exists=false" >> $GITHUB_OUTPUT
         fi
 
-    - id: build_node_base
+    - name: "Build Node Base"
+      id: build_node_base
       if: steps.check_for_node_change.outputs.changed == 'true' || steps.check_images.outputs.node_image_exists == 'false'
       shell: bash
       run: |    
