@@ -1,0 +1,115 @@
+name: check_node_dependencies
+
+inputs:
+  ecr_registry:
+    description: ECR Registry URL
+    required: true
+
+  node_base_repository:
+    description: Node base repository name
+    required: true
+    default: node_base
+
+  django_base_repository:
+    description: Django base repository name
+    required: true
+    default: django_base
+
+  docker_tag:
+    description: Tag to add to images
+    required: true
+ 
+outputs:
+  changed:
+    description: "Has Node base dockerfile or dependencies changed?"
+    value: ${{ steps.check_for_node_change.outputs.changed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check Node Dependencies
+      id: check_for_node_change
+      shell: bash
+      run: |
+        changed=false
+        if git diff --exit-code HEAD^..HEAD docker/production/node_base/Dockerfile; then
+          true
+        else
+          changed=true
+        fi
+        if git diff --exit-code -I '"version":' HEAD^..HEAD package.json; then
+          true
+        else
+          changed=true
+        fi
+        echo "changed=${changed}" >> $GITHUB_OUTPUT
+
+    - name: Check Python Dependencies
+      id: check_for_node_change
+      shell: bash
+      run: |
+        changed=false
+        if git diff --exit-code HEAD^..HEAD docker/production/django_base/Dockerfile; then
+          true
+        else
+          changed=true
+        fi
+        if git diff --exit-code -I '^version =' HEAD^..HEAD pyproject.toml; then
+          true
+        else
+          changed=true
+        fi
+        echo "changed=${changed}" >> $GITHUB_OUTPUT
+
+    - name: Check if images with required tag exist in Amazon ECR
+      id: check_images
+      run: |
+        if docker manifest inspect ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }} >/dev/null; then
+            echo "node_image_exists=true" >> $GITHUB_OUTPUT
+        else
+            echo "node_image_exists=false" >> $GITHUB_OUTPUT
+        fi
+        if docker manifest inspect ${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:${{ inputs.docker_tag }} >/dev/null; then
+            echo "django_image_exists=true" >> $GITHUB_OUTPUT
+        else
+            echo "django_image_exists=false" >> $GITHUB_OUTPUT
+        fi
+        if docker manifest inspect ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:latest >/dev/null; then
+            echo "node_image_latest_exists=true" >> $GITHUB_OUTPUT
+        else
+            echo "node_image_latest_exists=false" >> $GITHUB_OUTPUT
+        fi
+        if docker manifest inspect ${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:latest >/dev/null; then
+            echo "django_image_latest_exists=true" >> $GITHUB_OUTPUT
+        else
+            echo "django_image_latest_exists=false" >> $GITHUB_OUTPUT
+        fi
+
+    - id: build_node_base
+      if: steps.check_node_dependencies.outputs.changed == 'true' || steps.check_images.outputs.node_image_exists == 'false'
+      shell: bash
+      run: |    
+        echo "node_base_image=${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }}" >> $GITHUB_OUTPUT
+        echo $GITHUB_OUTPUT
+        aws ecr create-repository --repository-name ${{ inputs.node_base_repository }} || true
+        if [ "${{ steps.check_images.outputs.node_image_exists }}" == "true" ]; then
+          echo "${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }} not found" 
+          cachefrom="--cache-from ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }}"
+        elif [ "${{ steps.check_images.outputs.node_image_latest_exists }}" == "true" ]; then
+          echo "${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:latest not found" 
+          cachefrom="--cache-from ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:latest"
+        else
+          cachefrom=""
+        fi
+        echo $cachefrom
+        # docker build $cachefrom $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.set-version-number.outputs.version }} -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/production/node_base/Dockerfile .
+        # docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
+
+    # - id: build_django_base
+    #   if: steps.check_python_dependencies.outputs.changed == 'true'
+    #   shell: bash
+    #   run: |    
+    #     echo "base_image=$ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.set-version-number.outputs.version }}" >> $GITHUB_OUTPUT
+    #     aws ecr create-repository --repository-name $ECR_REPOSITORY || true
+    #     docker build --cache-from $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.set-version-number.outputs.version }} -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/production/django_base/Dockerfile .
+    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags

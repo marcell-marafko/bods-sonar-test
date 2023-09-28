@@ -4,6 +4,7 @@ on:
     - 'IGH-577-unit-test-execution'
     paths:
     - '.github/workflows/unit_test_execution.yml'
+    - '.github/workflows/templates/update_dependencies/action.yml'
   workflow_dispatch:
 
 name: 'unit_test_execution'
@@ -29,36 +30,58 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Set up Python 3.9.16
-      uses: actions/setup-python@v3
+      uses: actions/checkout@v4
       with:
-        python-version: "3.9.16"
+        fetch-depth: 2
 
-    - name: Install dependencies
-      run: |
-        cd ./../../
-        pwd
-        python -m pip install pytest
-        python -m pip install django
-        python -m pip install django_hosts
-        python -m pip install pytest_django
-        python -m pip install django-environ
-        python -m pip install python-dateutil --upgrade
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-2
 
-    - name: 'Create env file'
-      run: |
-        touch .env
-        echo ENGINE="django.contrib.gis.db.backends.postgis" >> .env
-        echo NAME=transit_odp >> .env
-        echo USER=transit_odp >> .env
-        echo PASSWORD=transit_odp >> .env
-        echo HOST=transit_odp >> .env
-        echo PORT=5432 >> .env
-        cat .env
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Run pytest
-      run: |
-        pwd
-        pytest
+    - name: Update depedencies and base containers
+      id: "update_dependencies"
+      uses: "./.github/workflows/templates/update_dependencies"
+      with:
+        ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+        node_base_repository: node_base_test
+        django_base_repository: django_base_test
+        docker_tag: tagging_test
+
+    # - name: Set up Python 3.9.16
+    #   uses: actions/setup-python@v3
+    #   with:
+    #     python-version: "3.9.16"
+
+    # - name: Install dependencies
+    #   run: |
+    #     cd ./../../
+    #     pwd
+    #     python -m pip install pytest
+    #     python -m pip install django
+    #     python -m pip install django_hosts
+    #     python -m pip install pytest_django
+    #     python -m pip install django-environ
+    #     python -m pip install python-dateutil --upgrade
+
+    # - name: 'Create env file'
+    #   run: |
+    #     touch .env
+    #     echo ENGINE="django.contrib.gis.db.backends.postgis" >> .env
+    #     echo NAME=transit_odp >> .env
+    #     echo USER=transit_odp >> .env
+    #     echo PASSWORD=transit_odp >> .env
+    #     echo HOST=transit_odp >> .env
+    #     echo PORT=5432 >> .env
+    #     cat .env
+
+    # - name: Run pytest
+    #   run: |
+    #     pwd
+    #     pytest
