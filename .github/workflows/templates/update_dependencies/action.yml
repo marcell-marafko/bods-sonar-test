@@ -86,6 +86,14 @@ runs:
             echo "django_image_latest_exists=false" >> $GITHUB_OUTPUT
         fi
 
+    - name: "Diagnose why build is not running"
+      id: diagnose
+      shell: bash
+      run: |
+        echo "steps.check_for_node_change.outputs.changed = ${{ steps.check_for_node_change.outputs.changed }}"
+        echo "steps.check_images.outputs.node_image_exists = ${{ steps.check_images.outputs.node_image_exists }}"
+
+
     - name: "Build Node Base"
       id: build_node_base
       if: steps.check_for_node_change.outputs.changed == 'true' || steps.check_images.outputs.node_image_exists == 'false'
