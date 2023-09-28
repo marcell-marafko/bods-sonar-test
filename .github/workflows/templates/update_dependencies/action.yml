@@ -93,10 +93,10 @@ runs:
         echo "node_base_image=${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }}" >> $GITHUB_OUTPUT
         echo $GITHUB_OUTPUT
         aws ecr create-repository --repository-name ${{ inputs.node_base_repository }} || true
-        if [ "${{ steps.check_images.outputs.node_image_exists }}" == "true" ]; then
+        if [ "${{ steps.check_images.outputs.node_image_exists }}" = "true" ]; then
           echo "${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }} not found" 
           cachefrom="--cache-from ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }}"
-        elif [ "${{ steps.check_images.outputs.node_image_latest_exists }}" == "true" ]; then
+        elif [ "${{ steps.check_images.outputs.node_image_latest_exists }}" = "true" ]; then
           echo "${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:latest not found" 
           cachefrom="--cache-from ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:latest"
         else
