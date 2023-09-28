@@ -103,8 +103,7 @@ runs:
           cachefrom=""
         fi
         echo $cachefrom
-        # docker build $cachefrom $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.set-version-number.outputs.version }} -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/production/node_base/Dockerfile .
-        # docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
+        docker build $cachefrom -t ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }} -f ./docker/production/node_base/Dockerfile .
 
     # - id: build_django_base
     #   if: steps.check_python_dependencies.outputs.changed == 'true'
