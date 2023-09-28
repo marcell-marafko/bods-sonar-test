@@ -86,21 +86,12 @@ runs:
             echo "django_image_latest_exists=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: "Diagnose why build is not running"
-      id: diagnose
-      shell: bash
-      run: |
-        echo "steps.check_for_node_change.outputs.changed = ${{ steps.check_for_node_change.outputs.changed }}"
-        echo "steps.check_images.outputs.node_image_exists = ${{ steps.check_images.outputs.node_image_exists }}"
-
-
     - name: "Build Node Base"
       id: build_node_base
       if: steps.check_for_node_change.outputs.changed == 'true' || steps.check_images.outputs.node_image_exists == 'false'
       shell: bash
       run: |    
         echo "node_base_image=${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }}" >> $GITHUB_OUTPUT
-        echo $GITHUB_OUTPUT
         aws ecr create-repository --repository-name ${{ inputs.node_base_repository }} || true
         if [ "${{ steps.check_images.outputs.node_image_exists }}" = "true" ]; then
           echo "${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }} not found" 
@@ -114,11 +105,23 @@ runs:
         echo $cachefrom
         docker build $cachefrom -t ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }} -f ./docker/production/node_base/Dockerfile .
         docker push ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }} --all-tags
-    # - id: build_django_base
-    #   if: steps.check_python_dependencies.outputs.changed == 'true'
-    #   shell: bash
-    #   run: |    
-    #     echo "base_image=$ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.set-version-number.outputs.version }}" >> $GITHUB_OUTPUT
-    #     aws ecr create-repository --repository-name $ECR_REPOSITORY || true
-    #     docker build --cache-from $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.set-version-number.outputs.version }} -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -f ./docker/production/django_base/Dockerfile .
-    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY --all-tags
+
+    - name: "Build Django Base"
+      id: build_django_base
+      if: steps.check_for_python_change.outputs.changed == 'true' || steps.check_images.outputs.django_image_exists == 'false'
+      shell: bash
+      run: |    
+        echo "django_base_image=${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:${{ inputs.docker_tag }}" >> $GITHUB_OUTPUT
+        aws ecr create-repository --repository-name ${{ inputs.django_base_repository }} || true
+        if [ "${{ steps.check_images.outputs.django_image_exists }}" = "true" ]; then
+          echo "${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:${{ inputs.docker_tag }} not found" 
+          cachefrom="--cache-from ${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:${{ inputs.docker_tag }}"
+        elif [ "${{ steps.check_images.outputs.django_image_latest_exists }}" = "true" ]; then
+          echo "${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:latest not found" 
+          cachefrom="--cache-from ${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:latest"
+        else
+          cachefrom=""
+        fi
+        echo $cachefrom
+        docker build $cachefrom -t ${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:${{ inputs.docker_tag }} -f ./docker/production/django_base/Dockerfile .
+        docker push ${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }} --all-tags
