@@ -1,0 +1,69 @@
+name: docker_cached_build
+
+inputs:
+  ecr_registry:
+    description: ECR Registry URL
+    required: true
+
+  repository:
+    description: Repository name
+    required: true
+
+  docker_tag:
+    description: Tag to add to images
+    required: true
+
+  default_docker_tag:
+    description: The default docker tag to cache from if existing doesn't exist
+    required: true
+    default: latest
+
+  dockerfile_location:
+    description: Location of the dockerfile
+    required: true
+    default: Dockerfile
+
+  docker_context:
+    description: Docker context
+    required: true
+    default: "."
+
+  tag_as_latest:
+    description: Should this have a latest tag?
+    required: true
+    default: "false"
+ 
+outputs:
+  image:
+    description: "Built image"
+    value: ${{ steps.build_image.outputs.image }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Build Image"
+      id: build_image
+      shell: bash
+      run: |    
+        image=${{ inputs.ecr_registry }}/${{ inputs.repository }}:${{ inputs.docker_tag }}
+        default_image=${{ inputs.ecr_registry }}/${{ inputs.repository }}:${{ inputs.default_docker_tag }}
+        echo "image=${image}" >> $GITHUB_OUTPUT
+        aws ecr create-repository --repository-name ${{ inputs.repository }} || true
+        if docker manifest inspect ${image} >/dev/null; then
+          echo "${image} not found" 
+          cachefrom="--cache-from ${image}"
+          docker pull $image
+        elif docker manifest inspect ${default_image} >/dev/null; then
+          echo "${default_image} not found" 
+          cachefrom="--cache-from ${default_image}"
+          docker pull $default_image
+        else
+          cachefrom=""
+        fi
+        if [ "${{ inputs.tag_as_latest }}" = "true" ]; then
+          tagaslatest=" -t latest "
+        else
+          tagaslatest=""
+        fi
+        docker build $cachefrom -t ${image} ${tagaslatest} -f ${{ inputs.dockerfile_location }} ${{ inputs.docker_context }}
+        docker push ${{ inputs.ecr_registry }}/${{ inputs.repository }} --all-tags
