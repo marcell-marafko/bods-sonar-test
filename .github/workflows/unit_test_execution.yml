@@ -1,89 +1,61 @@
 on:
   push:
     branches:
-    - 'IGH-577-unit-test-execution'
-    paths:
-    - '.github/workflows/unit_test_execution.yml'
-    - '.github/workflows/templates/update_dependencies/action.yml'
-    - 'package.json'
-    - 'pyproject.toml'
-  workflow_dispatch:
+      - IGH-577-unit-test-execution
 
-name: 'unit_test_execution'
+env:
+  ECR_REPOSITORY_NAME: ${{ vars.ECR_REPOSITORY }}
+  ECR_DJANGO_BASE_REPOSITORY_NAME: ${{ vars.ECR_DJANGO_BASE_REPOSITORY }}
+  ECR_NODE_BASE_REPOSITORY_NAME: ${{ vars.ECR_NODE_BASE_REPOSITORY }}
+  ENVIRONMENT_NAME: dev
 
-defaults:
-  run:
-    working-directory: ./transit_odp/fares
-
-env:  
-  ENGINE: django.contrib.gis.db.backends.postgis
-  NAME: transit_odp
-  USER: transit_odp
-  PASSWORD: transit_odp
-  HOST: transit_odp
-  PORT: 5432
-  
 
 jobs:
-
-  unit_test_execute:
-    name: 'unit_test_execution'
+  check-changes:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 2
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-west-2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+  
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+  
+      - id: set-version-number
+        run: |
+          TEXT=$(cat ./version.txt)
+          echo "version=${TEXT//'%'/'%25'}" >> $GITHUB_OUTPUT
+  
+      - id: echo-version
+        run: |
+          echo ${{ steps.set-version-number.outputs.version }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      - name: Sanitise branch name
+        id: sanitise_branch_name
+        run: |
+          branch=${{ github.head_ref || github.ref_name }}
+          echo "branch=${branch//\//-}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_OUTPUT
 
-    - name: Update depedencies and base containers
-      id: "update_dependencies"
-      uses: "./.github/workflows/templates/update_dependencies"
-      with:
-        ecr_registry: ${{ steps.login-ecr.outputs.registry }}
-        node_base_repository: node_base_test
-        django_base_repository: django_base_test
-        docker_tag: tagging_test
+      - name: Update Django
+        id: "update_django"
+        uses: "./.github/workflows/templates/build_django"
+        with:
+          ecr_registry: ${{ steps.login-ecr.outputs.registry }}
+          node_base_repository: node_base_unit_test
+          django_base_repository: django_base_unit_test
+          django_repository: django_unit_test
+          docker_tag: ${{ steps.sanitise_branch_name.outputs.branch }}
 
-    # - name: Set up Python 3.9.16
-    #   uses: actions/setup-python@v3
-    #   with:
-    #     python-version: "3.9.16"
-
-    # - name: Install dependencies
-    #   run: |
-    #     cd ./../../
-    #     pwd
-    #     python -m pip install pytest
-    #     python -m pip install django
-    #     python -m pip install django_hosts
-    #     python -m pip install pytest_django
-    #     python -m pip install django-environ
-    #     python -m pip install python-dateutil --upgrade
-
-    # - name: 'Create env file'
-    #   run: |
-    #     touch .env
-    #     echo ENGINE="django.contrib.gis.db.backends.postgis" >> .env
-    #     echo NAME=transit_odp >> .env
-    #     echo USER=transit_odp >> .env
-    #     echo PASSWORD=transit_odp >> .env
-    #     echo HOST=transit_odp >> .env
-    #     echo PORT=5432 >> .env
-    #     cat .env
-
-    # - name: Run pytest
-    #   run: |
-    #     pwd
-    #     pytest
+      - name: Unit Test
+        id: unit_test
+        run: |
+          docker run --entrypoint env --env-file ./config/.env.nodocker.template --user root ${{ steps.login-ecr.outputs.registry }}/django_unit_test:${{ steps.sanitise_branch_name.outputs.branch  }} /bin/sh -c "poetry install; pytest"

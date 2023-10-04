@@ -1,7 +1,8 @@
-ARG BASE_IMAGE=python:3.9-alpine3.16
+ARG DJANGO_BASE_IMAGE
+ARG NODE_BASE_IMAGE
 
 # Step 1 - Build frontend assets
-FROM node:19-alpine
+FROM ${NODE_BASE_IMAGE}
 
 WORKDIR /app
 
@@ -9,76 +10,19 @@ COPY ./package.json ./package-lock.json ./
 COPY ./transit_odp/frontend/assets ./transit_odp/frontend/assets
 COPY ./webpack ./webpack
 
-RUN apk add \
-        build-base \
-        pkgconfig \
-        autoconf \
-        automake \
-        libtool \
-        nasm \
-        libffi-dev \
-        libxml2-dev \
-        libxslt-dev \
-        jpeg-dev \
-        zlib-dev \
-        libpng-dev \
-        freetype-dev \
-    && npm install \
-    && npm run build
-
+RUN npm run build
 
 # Step 2 - Copy frontend assets and build Django image
-FROM ${BASE_IMAGE}
+FROM ${DJANGO_BASE_IMAGE}
 
 ENV PYTHONUNBUFFERED 1
 ENV PATH=$PATH:/app/node_modules/.bin
 WORKDIR /app
 
-# Install system packages
-RUN ln -s /usr/bin/python3 /usr/bin/python \
-    && apk update \
-    && apk add \
-            --repository http://dl-cdn.alpinelinux.org/alpine/v3.16/main \
-            --repository http://dl-cdn.alpinelinux.org/alpine/v3.16/community \
-            --no-cache \
-            gdal-dev \
-            gdal \
-            proj-util \
-            proj-dev \
-            pkgconfig \
-            autoconf \
-            automake \
-            libtool \
-            nasm \
-            build-base \
-            libffi-dev \
-            libxml2-dev \
-            libxslt-dev \
-            libpng-dev \
-            freetype-dev \
-            jpeg-dev \
-            zlib-dev \
-            postgresql-dev \
-            poppler \
-            nodejs \
-            npm \
-            binutils \
-            geos-dev \
-    && pip3 install --upgrade pip \
-    && pip3 install 'cython<3'
-
-
-# Install python packages
-# Copy the compiled frontend from step 1 - this ensures production image
-# needn't depend on dev tooling
 COPY --from=0 /app/transit_odp/frontend/static /app/transit_odp/frontend/static
 
 COPY ./pyproject.toml ./poetry.lock ./
-RUN python --version \
-    && pip install poetry==1.2.2 \
-    && poetry config virtualenvs.create false \
-    && poetry run python -m pip install 'pyproj<3' --no-build-isolation \
-    && poetry install --no-dev
+RUN poetry install --no-dev
 
 # Create non-privileged user
 RUN addgroup django \
