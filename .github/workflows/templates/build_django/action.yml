@@ -1,0 +1,138 @@
+name: check_node_dependencies
+
+inputs:
+  ecr_registry:
+    description: ECR Registry URL
+    required: true
+
+  node_base_repository:
+    description: Node base repository name
+    required: true
+    default: node_base
+
+  django_base_repository:
+    description: Django base repository name
+    required: true
+    default: django_base
+
+  django_repository:
+    description: Django repository name
+    required: true
+    default: django    
+
+  docker_tag:
+    description: Tag to add to images
+    required: true
+ 
+outputs:
+  changed:
+    description: "Has Node base dockerfile or dependencies changed?"
+    value: ${{ steps.check_for_node_change.outputs.changed }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Check Node Dependencies"
+      id: check_for_node_change
+      shell: bash
+      run: |
+        changed=false
+        if git diff --exit-code HEAD^..HEAD docker/production/node_base/Dockerfile; then
+          true
+        else
+          changed=true
+        fi
+        if git diff --exit-code -I '"version":' HEAD^..HEAD package.json; then
+          true
+        else
+          changed=true
+        fi
+        echo "changed=${changed}" >> $GITHUB_OUTPUT
+
+    - name: "Check Python Dependencies"
+      id: check_for_python_change
+      shell: bash
+      run: |
+        changed=false
+        if git diff --exit-code HEAD^..HEAD docker/production/django_base/Dockerfile; then
+          true
+        else
+          changed=true
+        fi
+        if git diff --exit-code -I '^version =' HEAD^..HEAD pyproject.toml; then
+          true
+        else
+          changed=true
+        fi
+        echo "changed=${changed}" >> $GITHUB_OUTPUT
+
+    - name: "Check if images with required tag exist in Amazon ECR"
+      shell: bash
+      id: check_images
+      run: |
+        if docker manifest inspect ${{ inputs.ecr_registry }}/${{ inputs.node_base_repository }}:${{ inputs.docker_tag }} >/dev/null; then
+            echo "node_image_exists=true" >> $GITHUB_OUTPUT
+        else
+            echo "node_image_exists=false" >> $GITHUB_OUTPUT
+        fi
+        if docker manifest inspect ${{ inputs.ecr_registry }}/${{ inputs.django_base_repository }}:${{ inputs.docker_tag }} >/dev/null; then
+            echo "django_image_exists=true" >> $GITHUB_OUTPUT
+        else
+            echo "django_image_exists=false" >> $GITHUB_OUTPUT
+        fi
+        if docker manifest inspect ${{ inputs.ecr_registry }}/${{ inputs.django_repository }}:${{ inputs.docker_tag }} >/dev/null; then
+            echo "django_app_image_exists=true" >> $GITHUB_OUTPUT
+        else
+            echo "django_app_image_exists=false" >> $GITHUB_OUTPUT
+        fi
+  
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: "Create repositories if they don't exist"
+      shell: bash
+      id: create_repos
+      run: |
+        aws ecr create-repository --repository-name ${{ inputs.node_base_repository }} || true
+        aws ecr create-repository --repository-name ${{ inputs.django_base_repository }} || true
+        aws ecr create-repository --repository-name ${{ inputs.django_repository }} || true
+
+    - name: Build and push node base image
+      id: build_node_base
+      if: steps.check_for_node_change.outputs.changed == 'true' || steps.check_images.outputs.node_image_exists == 'false'
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: ${{ format( '{0}/{1}:{2}', inputs.ecr_registry, inputs.node_base_repository, inputs.docker_tag ) }}
+        file: "./docker/production/node_base/Dockerfile"
+        context: "."
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push django base image
+      id: build_django_base
+      if: steps.check_for_python_change.outputs.changed == 'true' || steps.check_images.outputs.django_image_exists == 'false'
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: ${{ format( '{0}/{1}:{2}', inputs.ecr_registry, inputs.django_base_repository, inputs.docker_tag ) }}
+        file: "./docker/production/django_base/Dockerfile"
+        context: "."
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push django image
+      id: build_django
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: ${{ format( '{0}/{1}:{2}', inputs.ecr_registry, inputs.django_repository, inputs.docker_tag ) }}
+        file: "./docker/production/django/Dockerfile"
+        context: "."
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          DJANGO_BASE_IMAGE=${{ format( '{0}/{1}:{2}', inputs.ecr_registry, inputs.django_base_repository, inputs.docker_tag ) }}
+          NODE_BASE_IMAGE=${{ format( '{0}/{1}:{2}', inputs.ecr_registry, inputs.node_base_repository, inputs.docker_tag ) }}
+
+  
