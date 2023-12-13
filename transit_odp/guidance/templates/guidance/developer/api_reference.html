@@ -7,14 +7,14 @@
     <p class="govuk-body">
         {% blocktrans %}
             The API reference contains details of API calls, query parameters and error codes. You can try out API
-            calls in an interactive sandbox,
+            calls in an interactive Swagger sandbox,
         {% endblocktrans %}
-        <a class="govuk-link-bold" href="{% url 'api-select' host hosts.data %}">
+        <a class="govuk-link" href="{% url 'api-select' host hosts.data %}">
             {% trans 'Access interactive API.' %}
         </a>
     </p>
 
-    <h3 data-qa="all-data-header" class="govuk-heading-m">{% trans 'All data API reference' %}</h3>
+    <h2 data-qa="all-data-header" class="govuk-heading-m">{% trans 'All data API reference' %}</h2>
     <p class="govuk-body">
         {% trans 'You can use the call all data APIs in your code. This will provide all data currently available.' %}
     </p>
@@ -40,11 +40,11 @@
             </tr>
         </tbody>
     </table>
-    <h3 data-qa="timetable-header" class="govuk-heading-m">{% trans 'Timetables data API parameters' %}</h3>
+    <h2 data-qa="timetable-header" class="govuk-heading-m">{% trans 'Timetables data API parameters' %}</h2>
     <p class="govuk-body">
         {% blocktrans %}
             Data sets provided may contain multiple TransXChange files. Therefore, query parameters will
-            return any data sets which contains at least one TransXChange file that satisfies your query parameters.
+            return all data sets which contains at least one TransXChange file that satisfies your query parameters.
         {% endblocktrans %}
     </p>
     <table class="govuk-table govuk-!-margin-bottom-9">
@@ -185,7 +185,7 @@
         </tbody>
     </table>
 
-    <h3 data-qa="fares-header" class="govuk-heading-m">{% trans 'Fares data API parameters' %}</h3>
+    <h2 data-qa="fares-header" class="govuk-heading-m">{% trans 'Fares data API parameters' %}</h2>
     <p class="govuk-body">
         {% blocktrans %}
             Data sets provided may contain multiple NeTEx files. Therefore, query
@@ -253,7 +253,7 @@
         </tbody>
     </table>
 
-    <h3 data-qa="bus-header" class="govuk-heading-m">{% trans 'Bus location data API parameters' %}</h3>
+    <h2 data-qa="bus-header" class="govuk-heading-m">{% trans 'Bus location data API parameters' %}</h2>
     <p class="govuk-body">
         {% filter force_escape %}
             {% blocktrans %}
@@ -350,7 +350,7 @@
         </tbody>
     </table>
 
-    <h3 data-qa="bus-header" class="govuk-heading-m">{% filter force_escape %}{% trans 'GTFS RT-specific API parameters:' %}{% endfilter %}</h3>
+    <h2 data-qa="bus-header" class="govuk-heading-m">{% filter force_escape %}{% trans 'GTFS RT-specific API parameters:' %}{% endfilter %}</h2>
     <table class="govuk-table govuk-!-margin-bottom-9">
         <thead class="govuk-table__head">
             <tr class="govuk-table__row">

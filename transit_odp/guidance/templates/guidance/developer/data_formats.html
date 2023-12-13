@@ -4,45 +4,26 @@
 
 {% block extra_content %}
     <h1 data-qa="formats-header" class="govuk-heading-l">{% trans 'Data formats' %}</h1>
-    <h1 data-qa="timetables-header"class="govuk-heading-l">{% trans 'Timetables' %}</h1>
+    <h2 data-qa="timetables-header"class="govuk-heading-m">{% trans 'Timetables' %}</h2>
     <p class="govuk-body">
         {% blocktrans %}
             Timetables data is available in the TransXChange format. This is an XML standard used for
             exchanging bus schedules and related data. More information including schema guidance can
-            be found on the TransXChange website
+            be found on the
         {% endblocktrans %}
         <a class="govuk-link dont-break-out"
             href="https://www.gov.uk/government/collections/transxchange" target="_blank">
-            {% trans 'https://www.gov.uk/government/collections/transxchange.' %}</a>
-    </p>
-    <p class="govuk-body">
-        {% blocktrans %}
-            Where multiple TransXChange datasets exist for an operator, you can use the RevisionNumber to understand the sequence of datasets that have been supplied. This can be used alongside StartDate and EndDate values to allow you to identify which data is valid at any one time, and how datasets continue on from each other.
-        {% endblocktrans %}
-    </p>
-    <p class="govuk-body">
-        {% filter force_escape  %}
-            {% blocktrans %}
-                A processed output of the timetables data is also made available in GTFS format for
-                those consumers who would find it useful. The General Transit Feed Specification
-                (GTFS) is a data specification that allows public transit agencies to publish their
-                transit data in a format that can be consumed by a wide variety of software
-                applications. Today, the GTFS data format is used by thousands of public transport
-                providers. More information on this can be
-                found
-            {% endblocktrans %}
-        {% endfilter %}
-        <a class="govuk-link"
-            href="https://gtfs.org/"
-            target="_blank"
-            rel="noopener noreferrer">
-            {% filter force_escape %}{% trans 'found here' %}{% endfilter %}</a>.
+            {% trans 'TransXChange website' %}</a>.
     </p>
 
-    <h1 data-qa="fares-header"class="govuk-heading-l">{% trans 'Fares data' %}</h1>
+    <h2 data-qa="fares-header"class="govuk-heading-m">{% trans 'Fares data' %}</h2>
     <p class="govuk-body">
         {% blocktrans %}
-            Fares data is available in the NeTEx format. This is an XML standard developed during 2019 by industry standard leads to provide an interoperable format for the publication of fares data within the UK bus industry. NeTEx is a CEN standard that can be used to represent many aspects of a multi-modal transport network. The UK profile includes the elements related to fares for buses, for more information on the schema and profile use the following links:
+            Fares data is available in the NeTEx format. This is an XML standard developed during
+            2019 by industry standard leads to provide an interoperable format for the publication of
+            fares data within the UK bus industry. NeTEx is a CEN standard that can be used to represent
+            many aspects of a multi-modal transport network. The UK profile includes the elements related to fares
+            for buses, for more information on the schema and profile use the following links:
         {% endblocktrans %}
     </p>
     <p class="govuk-body">
@@ -55,13 +36,13 @@
             http://www.transmodel-cen.eu/standards/netex/</a>
     </p>
 
-    <h1 data-qa="bus-header"class="govuk-heading-l">{% trans 'Bus location data' %}</h1>
+    <h2 data-qa="bus-header"class="govuk-heading-m">{% trans 'Bus location data' %}</h2>
     <p class="govuk-body">
-        {% blocktrans with link="https://www.gov.uk/government/publications/technical-guidance-publishing-location-data-using-the-bus-open-data-service-siri-vm"%}
+        {% blocktrans with link="http://siri.org.uk/"%}
             Bus location data is available using the SIRI-VM profile shown in the table below.
             This is an XML standard for exchanging real time bus location information.
-            More information including technical guidance on the SIRI-VM profile can be found on
-            <a class="govuk-link dont-break-out" href="{{link}}" target="_blank">here</a>.
+            More information including schema guidance can be found on the
+            <a class="govuk-link dont-break-out" href="{{link}}" target="_blank">SIRI website</a>.
         {% endblocktrans %}
     </p>
     <table class="govuk-table govuk-!-margin-bottom-9">
@@ -190,24 +171,4 @@
             </tr>
         </tbody>
     </table>
-
-    <p class="govuk-body">
-        {% filter force_escape %}
-            {% blocktrans %}
-                A processed output of bus location data is also made available in GTFS-RT format
-                for those who wish to consume it. GTFS Realtime is a feed specification that allows
-                public transportation agencies to provide realtime updates about their fleet to
-                application developers. It is an extension to GTFS (General Transit Feed
-                Specification), an open data format for public transportation schedules and
-                associated geographic information. GTFS Realtime was designed around ease of
-                implementation, good GTFS interoperability and a focus on passenger information.
-                More information on this can be
-            {% endblocktrans %}
-        {% endfilter %}
-        <a class="govuk-link"
-            href="https://developers.google.com/transit/gtfs-realtime"
-            target="_blank"
-            rel="noopener noreferrer">
-            {% filter force_escape %}{% trans 'found here' %}{% endfilter %}</a>.
-    </p>
 {% endblock %}

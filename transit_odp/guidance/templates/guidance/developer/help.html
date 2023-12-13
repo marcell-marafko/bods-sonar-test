@@ -3,27 +3,35 @@
 {% load i18n %}
 
 {% block extra_content %}
-  <h1 data-qa="issues-header" class="govuk-heading-l">{% trans 'Data issues' %}</h1>
-  <p class="govuk-body">
-    {% blocktrans %}
-    To report any issues found within the data please find the detail page for that
-    data set/feed. This can easily be done using the data set/feed ID. Browse for
-    that data and provide feedback to the data publisher. This will enable them to
-    read your comments and response to your query. This way data quality can be
-    iteratively improved within the service, and the transport ecosystem.
-    {% endblocktrans %}
-  </p>
+    <h1 data-qa="issues-header" class="govuk-heading-l">{% trans 'How to get help' %}</h1>
 
-  <p class="govuk-body">
-  {% trans 'Contact' %}
-    <a class="govuk-link" href="mailto:bodshelpdesk@kpmg.co.uk">
-      bodshelpdesk@kpmg.co.uk
-    </a>
-    {% blocktrans %}
-    for any queries or questions you might have if it is not already answered within
-    the developer documentation. We also welcome constructive feedback about the service.
-    {% endblocktrans %}
-  </p>
+    <h2 data-qa="issues-header" class="govuk-heading-m">{% trans 'Data issues' %}</h2>
+    <p class="govuk-body">
+        {% blocktrans %}
+            To report any issues found within the data please find the detail page for that
+            data set/feed. This can easily be done using the data set/feed ID. Provide feedback
+            to the data publisher. This will enable them to read your comments and respond to
+            your query. This way data quality can be iteratively improved within the service.
+        {% endblocktrans %}
+    </p>
 
+    <h2 data-qa="issues-header" class="govuk-heading-m">{% trans 'Query parameters' %}</h2>
+    <p class="govuk-body">
+        {% blocktrans %}
+            Ther service is an indexing service for static data (timetables and fares). This means
+            that if a query parameter is applied to an API call, the whole data set may be returned,
+            instead of the specific file that satisfies your call.
+        {% endblocktrans %}
+    </p>
 
+    <h2 data-qa="issues-header" class="govuk-heading-m">{% trans 'Account issues' %}</h2>
+    <p class="govuk-body">
+        {% blocktrans %}
+            Please check that your question is not answered elsewhere on this website and
+            then contact
+        {% endblocktrans %}
+        <a class="govuk-link" href="mailto:feedback@busopendata.gov.uk">
+            feedback@busopendata.gov.uk
+        </a>
+    </p>
 {% endblock %}

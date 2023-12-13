@@ -3,32 +3,69 @@
 {% load i18n %}
 
 {% block extra_content %}
-    <h2 data-qa="operator-header" class="govuk-heading-l">
+    <h1 data-qa="data-by-op-loc-header" class="govuk-heading-l">{% trans 'Data by operator or location' %}</h1>
+    <h2 data-qa="operator-header" class="govuk-heading-m">
         {% trans 'Getting data by operator' %}
     </h2>
     <p class="govuk-body">
         {% blocktrans %}
-            For all data types you can apply the NOC query parameter. This will limit results to data published by that operator, including any other NOC associated with that operator on this service.
+            For all data types you can apply the NOC query parameter limiting results to datasets from operators that are associated with that code.
         {% endblocktrans %}
     </p>
     <p class="govuk-body">
         {% blocktrans %}
-            Download the
-        {% endblocktrans %}
-        <a class="govuk-link" href="{% url 'download-catalogue' host hosts.data %}">data catalogue</a>
-        {% blocktrans %}
-            to see the relationship between operators and NOC on this service.
+            The Bus Open Data Service allows operators to attribute National Operator Codes (NOCs)
+            to their publishing accounts. When the NOC query parameter is applied to an API call,
+            it will return all data sets for that NOC, and all other NOCs associated with that account.
         {% endblocktrans %}
     </p>
-    <h2 data-qa="operator-header" class="govuk-heading-l">
+    <p class="govuk-body">
+        {% blocktrans %}
+            The full NOC database can be found on the
+        {% endblocktrans %}
+        <a class="govuk-link"
+            href="https://www.travelinedata.org.uk/traveline-open-data/transport-operations/about-2/"
+            target="_blank"
+            rel="noopener noreferrer">
+            {% filter force_escape %}
+                {% trans 'Traveline website.' %}
+            {% endfilter %}
+        </a>
+    </p>
+    <h2 data-qa="operator-header" class="govuk-heading-m">
         {% trans 'Getting data by location' %}
     </h2>
+    <h3 data-qa="timetables-header" class="govuk-heading-s">
+        {% trans 'Timetables' %}
+    </h3>
     <p class="govuk-body">
         {% blocktrans %}
-            To get data for a specific location you can use the boundingBox parameter. For
-            bus location data this will limit the data to vehicles within the prescribed
-            area at that point in time. For timetables are fares if any data is within the
-            boundingBox, the whole data set will be returned.
+            Use the query parameter adminArea by specifying a comma separated list of admin
+            areas defined by their AtcoAreaCode as specified in the NPTG area codes.
+        {% endblocktrans %}
+    </p>
+    <h3 data-qa="bus-location-header" class="govuk-heading-s">
+        {% trans 'Bus location' %}
+    </h3>
+    <p class="govuk-body">
+        {% blocktrans %}
+            Use the query parameter boundingBox to limit results to bus location data
+            with vehicle positions within the rectangular co-ordinates specified.
+        {% endblocktrans %}
+    </p>
+    <h3 data-qa="fares-header" class="govuk-heading-s">
+        {% trans 'Fares' %}
+    </h3>
+    <p class="govuk-body">
+        {% blocktrans %}
+            Use the query parameter boundingBox to limit results to fares data that contain
+            information for the area within the rectangular boundingBox within the rectangular
+            co-ordinates specified.
+        {% endblocktrans %}
+    </p>
+    <p class="govuk-body">
+        {% blocktrans %}
+            Alternative, you could use the adminArea query paramter based on NPTG locality.
         {% endblocktrans %}
     </p>
     <p class="govuk-body">
